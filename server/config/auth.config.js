@@ -35,7 +35,6 @@ router.post('/register', async (req, res) => {
       email,
       password: hashpassword,
     });
-    console.log(users);
 
     res.status(201).json({ message: 'Created a user successfuly' });
   } catch (err) {
@@ -123,7 +122,6 @@ router.post('/refresh_token', (req, res) => {
   return res.json({
     ok: true,
     accessToken,
-    newRefreshToken,
   });
 });
 

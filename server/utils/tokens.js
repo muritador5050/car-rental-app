@@ -1,6 +1,7 @@
 require('dotenv/config');
 const { sign, verify } = require('jsonwebtoken');
 
+//CreateAccessToken
 const createAccessToken = (userId) => {
   return sign(
     { id: userId.id, email: userId.email },
@@ -11,16 +12,19 @@ const createAccessToken = (userId) => {
   );
 };
 
+//CreateRefreshToken
 const createRefreshToken = (userId) => {
   return sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: '7d',
   });
 };
 
+//VerifyRefreshToken
 const verifyRefreshToken = (token) => {
   return verify(token, process.env.REFRESH_TOKEN_SECRET);
 };
 
+//AuthenticateToken middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // "Bearer TOKEN"
