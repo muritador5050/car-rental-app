@@ -1,0 +1,11 @@
+GET http://localhost:4000/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc0NjcyMzc2NiwiZXhwIjoxNzQ2NzI0NjY2fQ.34rRIoK8ZTE13WizpUQ0VgYL4LfjKtfda6OH5w_Z1PU
+###
+POST http://localhost:4000/register
+
+Content-Type: "application/json"
+
+{ 
+    "email":"abdul@gmail.com",
+    "password":"12345"
+}
