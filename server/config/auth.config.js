@@ -123,6 +123,7 @@ router.post('/refresh_token', (req, res) => {
   return res.json({
     ok: true,
     accessToken,
+    newRefreshToken,
   });
 });
 
