@@ -1,52 +1,46 @@
-require('dotenv/config');
-const { sign, verify } = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-//CreateAccessToken
+// Create access token (short-lived)
 const createAccessToken = (userId) => {
-  return sign(
-    { id: userId.id, email: userId.email },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: '15m',
-    }
-  );
+  return jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: '15m',
+  });
 };
 
-//CreateRefreshToken
+// Create refresh token (long-lived)
 const createRefreshToken = (userId) => {
-  return sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
+  return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: '7d',
   });
 };
 
-//VerifyRefreshToken
+// Verify refresh token
 const verifyRefreshToken = (token) => {
-  return verify(token, process.env.REFRESH_TOKEN_SECRET);
+  return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 };
 
-//AuthenticateToken middleware
+// Middleware to authenticate tokens
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // "Bearer TOKEN"
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) {
-      return res
-        .status(403)
-        .json({ message: 'Invalid or expired token' + err.message });
-    }
-    req.userId = user.userId;
+  try {
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    req.userId = payload.userId;
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
 };
 
 module.exports = {
   createAccessToken,
   createRefreshToken,
-  authenticateToken,
   verifyRefreshToken,
+  authenticateToken,
 };

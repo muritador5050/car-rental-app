@@ -1,24 +1,97 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
+const { pool } = require('../config/db');
+
+class User {
+  // Find a user by email
+  static async findByEmail(email) {
+    try {
+      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [
+        email,
+      ]);
+      return rows[0];
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      throw error;
     }
   }
-  User.init({
-    name: DataTypes.STRING,
-    email: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'User',
-  });
-  return User;
-};
+
+  // Find a user by ID
+  static async findById(id) {
+    try {
+      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+      return rows[0];
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
+      throw error;
+    }
+  }
+
+  // Create a new user (customer)
+  static async create(userData) {
+    const { name, email, password, phone, address, driver_license_number } =
+      userData;
+
+    try {
+      const [result] = await pool.query(
+        'INSERT INTO users (name, email, password, phone, address, driver_license_number, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [
+          name,
+          email,
+          password,
+          phone || null,
+          address || null,
+          driver_license_number || null,
+          'customer',
+        ]
+      );
+      return result.insertId;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  // Update user profile
+  static async updateProfile(id, userData) {
+    const { name, phone, address, driver_license_number } = userData;
+
+    try {
+      const [result] = await pool.query(
+        'UPDATE users SET name = ?, phone = ?, address = ?, driver_license_number = ? WHERE id = ?',
+        [name, phone, address, driver_license_number, id]
+      );
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+
+  // Get user profile (excluding password)
+  static async getProfile(id) {
+    try {
+      const [rows] = await pool.query(
+        'SELECT id, name, email, phone, address, driver_license_number, role, created_at FROM users WHERE id = ?',
+        [id]
+      );
+      return rows[0];
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      throw error;
+    }
+  }
+
+  // Check if user is admin
+  static async isAdmin(id) {
+    try {
+      const [rows] = await pool.query('SELECT role FROM users WHERE id = ?', [
+        id,
+      ]);
+      return rows[0] && rows[0].role === 'admin';
+    } catch (error) {
+      console.error('Error checking if user is admin:', error);
+      throw error;
+    }
+  }
+}
+
+module.exports = User;
