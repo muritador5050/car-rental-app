@@ -39,7 +39,9 @@ class User {
 
     try {
       const [result] = await pool.query(
-        'INSERT INTO users (name, email, password, phone, address, driver_license_number, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        `INSERT INTO users 
+        (name, email, password, phone, address, driver_license_number, role)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           name,
           email,
