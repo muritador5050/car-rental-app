@@ -169,4 +169,108 @@ class Car {
       return rows[0];
     } catch (error) {}
   }
+
+  //Update a car (admin only)
+  static async update(id, carData) {
+    const {
+      name,
+      brand,
+      model,
+      license_plate,
+      year,
+      daily_rate,
+      hourly_rate,
+      seats,
+      status,
+      fuel_type,
+      transmission,
+      image_url,
+    } = carData;
+    try {
+      const [result] = await pool.query(
+        `UPDATE cars SET 
+        name = ?, 
+        brand = ?, 
+        model = ?, 
+        license_plate = ?, 
+        year = ?, 
+        daily_rate = ?, 
+        hourly_rate = ?, 
+        seats = ?,
+        status = ?,
+        fuel_type = ?, 
+        transmission = ?, 
+        image_url = ? 
+      WHERE id = ?`,
+        [
+          name,
+          brand,
+          model,
+          license_plate,
+          year,
+          daily_rate,
+          hourly_rate,
+          seats,
+          status,
+          fuel_type,
+          transmission,
+          image_url,
+          id,
+        ]
+      );
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error updating car:', error);
+      throw error;
+    }
+  }
+
+  //Delete a car (admin only)
+  static async delete(id) {
+    try {
+      const [result] = await pool.query('DELETE FROM cars WHERE id =?', [id]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error deleting car:', error);
+      throw error;
+    }
+  }
+
+  //Update car status
+  static async updateStatus(id, status) {
+    try {
+      const [result] = await pool.query(
+        `UPDATE cars SET status = ? WHERE id = ?`,
+        [status, id]
+      );
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error updating car status:', error);
+      throw error;
+    }
+  }
+
+  //Get popular cars (most booked)
+  static async getPopular(limit = 5) {
+    try {
+      const [rows] = await pool.query(
+        `
+        SELECT c.*, COUNT(b.id) as booking_count 
+        FROM cars c
+        JOIN bookings b ON c.id = b.car_id
+        WHERE b.status = 'completed'
+        GROUP BY c.id
+        ORDER BY booking_count DESC
+        LIMIT ?
+      `,
+        [limit]
+      );
+      return rows;
+    } catch (error) {
+      console.error('Error getting popular cars:', error);
+      throw error;
+    }
+  }
 }
+
+module.exports = Car;
