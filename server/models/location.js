@@ -47,12 +47,7 @@ class Location {
   static async getAll() {
     try {
       const [rows] = await pool.query('SELECT * FROM locations ORDER BY name');
-
-      //Parse working_hours JSON for each location
-      return rows.map((location) => ({
-        ...location,
-        working_hours: JSON.parse(location.working_hours),
-      }));
+      return rows;
     } catch (error) {
       console.error('Error getting all locations:', error);
       throw error;

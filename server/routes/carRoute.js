@@ -194,10 +194,10 @@ router.put('/:id/status', isAdmin, async (req, res) => {
 });
 
 // Get popular cars
-router.get('/popular/:limit?', async (req, res) => {
+router.get('/popular/:limit', async (req, res) => {
   try {
-    const limit = req.params.limit || 5;
-    const popularCars = Car.getPopular(parent(limit));
+    const limit = parseInt(req.params.limit) || 5;
+    const popularCars = await Car.getPopular(limit);
     res.json({
       success: true,
       count: popularCars.length,

@@ -52,52 +52,52 @@ class Car {
 
       //Add filters if provided
       if (filter.name) {
-        query += 'AND name = ?';
+        query += ' AND name = ?';
         params.push(filter.name);
       }
 
       if (filter.status) {
-        query += 'AND status = ?';
+        query += ' AND status = ?';
         params.push(filter.status);
       }
 
       if (filter.brand) {
-        query += 'AND brand = ?';
+        query += ' AND brand = ?';
         params.push(filter.brand);
       }
 
       if (filter.seats) {
-        query += 'AND seats >= ?';
+        query += ' AND seats >= ?';
         params.push(filter.seats);
       }
 
       if (filter.year) {
-        query += 'AND year = ?';
+        query += ' AND year = ?';
         params.push(filter.year);
       }
 
       if (filter.fuel_type) {
-        query += 'AND fuel_type = ?';
+        query += ' AND fuel_type = ?';
         params.push(filter.fuel_type);
       }
 
       //Add price range filter
       if (filter.minDailyRate) {
-        query += 'AND daily_rate >= ?';
+        query += ' AND daily_rate >= ?';
         params.push(filter.minDailyRate);
       }
 
       if (filter.maxDailyRate) {
-        query += 'AND daily_rate <= ?';
+        query += ' AND daily_rate <= ?';
         params.push(filter.maxDailyRate);
       }
 
       //Add sorting
       if (filter.sortBy) {
-        query += `ORDER BY ${filter.sortBy}`;
+        query += ` ORDER BY ${filter.sortBy}`;
         query += filter.sortOrder === 'desc' ? 'DESC' : 'ASC';
       } else {
-        query += `ORDER BY created_at DESC`;
+        query += ` ORDER BY created_at ASC`;
       }
 
       const [rows] = await pool.query(query, params);
@@ -253,6 +253,7 @@ class Car {
   //Get popular cars (most booked)
   static async getPopular(limit = 5) {
     try {
+      const numLimit = parseInt(limit);
       const [rows] = await pool.query(
         `
         SELECT c.*, COUNT(b.id) as booking_count 
@@ -263,7 +264,7 @@ class Car {
         ORDER BY booking_count DESC
         LIMIT ?
       `,
-        [limit]
+        [numLimit]
       );
       return rows;
     } catch (error) {

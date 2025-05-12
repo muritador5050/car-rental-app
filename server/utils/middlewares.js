@@ -10,11 +10,12 @@ const isAdmin = async (req, res, next) => {
         .status(403)
         .json({ message: 'Access denied. Admin privileges required.' });
     }
-
+    // Attach user admin status to request
+    req.isAdmin = true;
     next();
   } catch (error) {
-    console.error('Admin middleware error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ message: 'Error checking admin status' });
   }
 };
 

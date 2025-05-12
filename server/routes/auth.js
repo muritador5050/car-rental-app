@@ -28,16 +28,11 @@ router.post(
     body('name').notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('valid email is required'),
     body('password')
-      .isLength({ min: 8 })
-      .withMessage('Password must be at least 8 characters')
-      .matches(/[A-Z]/)
-      .withMessage('Must contain an uppercase letter')
-      .matches(/[a-z]/)
-      .withMessage('Must contain a lowercase letter')
-      .matches(/[0-9]/)
-      .withMessage('Must contain a number')
-      .matches(/[^A-Za-z0-9]/)
-      .withMessage('Must contain a special character'),
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/)
+      .withMessage(
+        `Password must be at least 8 characters and contain at least one uppercase letter,
+         one lowercase letter, one number, and one special character`
+      ),
   ],
 
   async (req, res) => {
@@ -228,7 +223,7 @@ router.post('/refresh_token', async (req, res) => {
 });
 
 // Protected route
-router.get('/protected', authenticateToken, async (req, res) => {
+router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     const user = await User.getProfile(req.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });

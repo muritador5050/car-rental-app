@@ -1,6 +1,6 @@
 const { pool } = require('../config/db');
 
-class Boooking {
+class Booking {
   // Create a new booking
   static async create(bookingData) {
     const {
@@ -147,6 +147,7 @@ class Boooking {
 
       const params = [];
 
+      // Validate and add filters
       if (filters.status) {
         query += ' AND b.status = ?';
         params.push(filters.status);
@@ -164,31 +165,42 @@ class Boooking {
 
       if (filters.userId) {
         query += ' AND b.user_id = ?';
-        params.push(filters.userId);
+        params.push(parseInt(filters.userId) || filters.userId);
       }
 
       if (filters.carId) {
         query += ' AND b.car_id = ?';
-        params.push(filters.carId);
+        params.push(parseInt(filters.carId) || filters.carId);
       }
 
       query += ' ORDER BY b.created_at DESC';
 
       // Add pagination
       if (filters.limit) {
-        query += ' LIMIT ?';
-        params.push(parseInt(filters.limit));
+        const limit = parseInt(filters.limit);
+        if (!isNaN(limit)) {
+          query += ' LIMIT ?';
+          params.push(limit);
 
-        if (filters.offset) {
-          query += ' OFFSET ?';
-          params.push(parseInt(filters.offset));
+          if (filters.offset) {
+            const offset = parseInt(filters.offset);
+            if (!isNaN(offset)) {
+              query += ' OFFSET ?';
+              params.push(offset);
+            }
+          }
         }
       }
+
+      console.log('Query:', query);
+      console.log('Params:', params);
 
       const [rows] = await pool.query(query, params);
       return rows;
     } catch (error) {
       console.error('Error getting all bookings:', error);
+      console.error('Query was:', query);
+      console.error('Params were:', params);
       throw error;
     }
   }
@@ -282,4 +294,4 @@ class Boooking {
   }
 }
 
-module.exports = Boooking;
+module.exports = Booking;

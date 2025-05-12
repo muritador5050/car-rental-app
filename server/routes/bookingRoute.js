@@ -3,7 +3,8 @@ const router = express.Router();
 const Booking = require('../models/booking');
 const { authenticateToken } = require('../utils/tokens');
 const { isAdmin } = require('../models/user');
-//Create a booking
+
+//Book a car (only auth user)
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
@@ -34,7 +35,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     // Create booking
     const bookingData = {
-      user_id: req.user.id,
+      user_id: req.userId,
       car_id,
       pickup_location_id,
       return_location_id,
@@ -62,13 +63,14 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+//Get bookings (only admin)
 router.get('/', authenticateToken, isAdmin, async (req, res) => {
   try {
     const filters = {
       status: req.query.status,
       startDate: req.query.start_date,
       endDate: req.query.end_date,
-      userId: req.query.user_id,
+      userId: req.query.userId, // Changed from userId to user_id to match query param
       carId: req.query.car_id,
       limit: req.query.limit,
       offset: req.query.offset,
@@ -84,7 +86,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
 
 router.get('/my-booking', authenticateToken, async (req, res) => {
   try {
-    const bookings = await Booking.getByUserId(req.user.id);
+    const bookings = await Booking.getByUserId(req.userId); // Changed from req.user.id to req.userId
     res.status(200).json(bookings);
   } catch (error) {
     console.error('Error fetching user bookings:', error);
@@ -101,8 +103,11 @@ router.get('/:id', authenticateToken, async (req, res) => {
     }
 
     //Check if user is the owner or admin
-    if (booking.user.id != req.user.id && !req.user.is_admin) {
-      returnres.status(403).json({ message: 'Access denied' });
+    // You need to check if user has admin status from database
+    const userIsAdmin = await isAdmin(req, res, () => {});
+
+    if (booking.user_id !== req.userId && !userIsAdmin) {
+      return res.status(403).json({ message: 'Access denied' });
     }
 
     res.status(200).json(booking);
@@ -127,10 +132,13 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    // Check if user is admin
+    const userIsAdmin = await isAdmin(req, res, () => {});
+
     //Check permission
-    if (!req.user.is_admin) {
+    if (!userIsAdmin) {
       //Regular user can only cancel their own bookings
-      if (booking.user_id != req.user.id) {
+      if (booking.user_id !== req.userId) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
