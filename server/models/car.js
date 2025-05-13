@@ -17,10 +17,13 @@ class Car {
       transmission,
       image_url,
     } = carData;
+
     try {
       const [result] = await pool.query(
         `INSERT INTO cars 
-        (name, brand, model, license_plate, year, daily_rate, hourly_rate, seats, status, fuel_type, transmission, image_url)
+        (name, brand, model, license_plate,
+        year, daily_rate, hourly_rate, seats,
+        status, fuel_type, transmission, image_url)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           name,
@@ -95,9 +98,9 @@ class Car {
       //Add sorting
       if (filter.sortBy) {
         query += ` ORDER BY ${filter.sortBy}`;
-        query += filter.sortOrder === 'desc' ? 'DESC' : 'ASC';
+        query += filter.sortBy === 'desc' ? 'DESC' : 'ASC';
       } else {
-        query += ` ORDER BY created_at ASC`;
+        query += ` ORDER BY id ASC`;
       }
 
       const [rows] = await pool.query(query, params);
