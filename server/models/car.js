@@ -95,13 +95,31 @@ class Car {
         params.push(filter.maxDailyRate);
       }
 
-      //Add sorting
-      if (filter.sortBy) {
-        query += ` ORDER BY ${filter.sortBy}`;
-        query += filter.sortBy === 'desc' ? 'DESC' : 'ASC';
-      } else {
-        query += ` ORDER BY id ASC`;
+      // Safe sorting logic
+      const allowedSortFields = [
+        'id',
+        'name',
+        'brand',
+        'daily_rate',
+        'year',
+        'created_at',
+      ];
+
+      let sortField = 'id';
+      let sortOrder = 'ASC';
+
+      if (filter.sortBy && allowedSortFields.includes(filter.sortBy)) {
+        sortField = filter.sortBy;
       }
+
+      if (
+        filter.sortOrder &&
+        ['asc', 'desc'].includes(filter.sortOrder.toLowerCase())
+      ) {
+        sortOrder = filter.sortOrder.toUpperCase();
+      }
+
+      query += ` ORDER BY ${sortField} ${sortOrder}`;
 
       const [rows] = await pool.query(query, params);
       return rows;
