@@ -192,56 +192,28 @@ class Car {
   }
 
   //Update a car (admin only)
-  static async update(id, carData) {
-    const {
-      name,
-      brand,
-      model,
-      license_plate,
-      year,
-      daily_rate,
-      hourly_rate,
-      seats,
-      status,
-      fuel_type,
-      transmission,
-      image_url,
-    } = carData;
+  static async updateCar(id, userData) {
     try {
-      const [result] = await pool.query(
-        `UPDATE cars SET 
-        name = ?, 
-        brand = ?, 
-        model = ?, 
-        license_plate = ?, 
-        year = ?, 
-        daily_rate = ?, 
-        hourly_rate = ?, 
-        seats = ?,
-        status = ?,
-        fuel_type = ?, 
-        transmission = ?, 
-        image_url = ? 
-      WHERE id = ?`,
-        [
-          name,
-          brand,
-          model,
-          license_plate,
-          year,
-          daily_rate,
-          hourly_rate,
-          seats,
-          status,
-          fuel_type,
-          transmission,
-          image_url,
-          id,
-        ]
-      );
+      const fields = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(userData)) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+
+      if (fields.length === 0) {
+        throw new Error('No data provided for update');
+      }
+
+      values.push(id); // Append the ID at the end for the WHERE clause
+
+      const query = `UPDATE cars SET ${fields.join(', ')} WHERE id = ?`;
+
+      const [result] = await pool.query(query, values);
       return result.affectedRows > 0;
     } catch (error) {
-      console.error('Error updating car:', error);
+      console.error('Error updating user profile:', error);
       throw error;
     }
   }

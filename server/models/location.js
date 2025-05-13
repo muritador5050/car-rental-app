@@ -18,13 +18,13 @@ class Location {
       const [rows] = await pool.query(
         `INSERT INTO locations (  
        name,
-      address,
-      city,
-      latitude,
-      longitude,
-      phone_number,
-      working_hours)
-      VALUES (?,?,?,?,?,?,?)
+       address,
+       city,
+       latitude,
+       longitude,
+       phone_number,
+       working_hours)
+       VALUES (?,?,?,?,?,?,?)
       `,
         [
           name,
@@ -71,32 +71,23 @@ class Location {
   }
   //Update location (admin only)
   static async update(id, locationData) {
-    const {
-      name,
-      address,
-      city,
-      latitude,
-      longitude,
-      phone_number,
-      working_hours,
-    } = locationData;
     try {
-      const [result] = await pool.query(
-        `
-                UPDATE locations SET name = ? , address = ?, city = ? , latitude = ?, longitude = ?, 
-                 phone_number = ? , working_hours = ? 
-                 WHERE id = ?`,
-        [
-          name,
-          address,
-          city,
-          latitude,
-          longitude,
-          phone_number,
-          JSON.stringify(working_hours),
-          id,
-        ]
-      );
+      const fields = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(locationData)) {
+        fields.push(`${key} = ? `);
+        values.push(value);
+      }
+
+      if (fields.length === 0) {
+        throw new Error('No data provided for update');
+      }
+
+      values.push(id);
+      const query = `UPDATE locations SET ${fields.join(', ')} WHERE id = ?`;
+
+      const [result] = await pool.query(query, values);
       return result.affectedRows > 0;
     } catch (error) {
       console.error('Error updating location:', error);

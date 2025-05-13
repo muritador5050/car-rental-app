@@ -81,53 +81,6 @@ class Booking {
     }
   }
 
-  // Get booking by ID with related information
-  static async getById(id) {
-    try {
-      const [rows] = await pool.query(
-        `SELECT b.*, 
-         c.name AS car_name, c.brand AS car_brand, c.model AS car_model, c.image_url AS car_image,
-         u.name AS user_name, u.email AS user_email,
-         pl.name AS pickup_location_name, pl.address AS pickup_address,
-         rl.name AS return_location_name, rl.address AS return_address
-         FROM bookings b
-         JOIN cars c ON b.car_id = c.id
-         JOIN users u ON b.user_id = u.id
-         JOIN locations pl ON b.pickup_location_id = pl.id
-         JOIN locations rl ON b.return_location_id = rl.id
-         WHERE b.id = ?`,
-        [id]
-      );
-      return rows[0];
-    } catch (error) {
-      console.error('Error getting booking by ID:', error);
-      throw error;
-    }
-  }
-
-  // Get bookings by user ID
-  static async getByUserId(userId) {
-    try {
-      const [rows] = await pool.query(
-        `SELECT b.*, 
-         c.name AS car_name, c.brand AS car_brand, c.model AS car_model, c.image_url AS car_image,
-         pl.name AS pickup_location_name,
-         rl.name AS return_location_name
-         FROM bookings b
-         JOIN cars c ON b.car_id = c.id
-         JOIN locations pl ON b.pickup_location_id = pl.id
-         JOIN locations rl ON b.return_location_id = rl.id
-         WHERE b.user_id = ?
-         ORDER BY b.created_at DESC`,
-        [userId]
-      );
-      return rows;
-    } catch (error) {
-      console.error('Error getting bookings by user ID:', error);
-      throw error;
-    }
-  }
-
   // Get all bookings with filters (admin only)
   static async getAll(filters = {}) {
     try {
@@ -201,6 +154,51 @@ class Booking {
       console.error('Error getting all bookings:', error);
       console.error('Query was:', query);
       console.error('Params were:', params);
+      throw error;
+    }
+  }
+
+  // Get booking by ID with related information
+  static async getById(id) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT b.*, 
+         c.name AS car_name, c.brand AS car_brand, c.model AS car_model, c.image_url AS car_image,
+         u.name AS user_name, u.email AS user_email,
+         pl.name AS pickup_location_name, pl.address AS pickup_address,
+         rl.name AS return_location_name, rl.address AS return_address
+         FROM bookings b
+         JOIN cars c ON b.car_id = c.id
+         JOIN users u ON b.user_id = u.id
+         JOIN locations pl ON b.pickup_location_id = pl.id
+         JOIN locations rl ON b.return_location_id = rl.id
+         WHERE b.id = ?`,
+        [id]
+      );
+      return rows[0];
+    } catch (error) {
+      console.error('Error getting booking by ID:', error);
+      throw error;
+    }
+  }
+  static async getByUserId(userId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT b.*, 
+         c.name AS car_name, c.brand AS car_brand, c.model AS car_model, c.image_url AS car_image,
+         pl.name AS pickup_location_name,
+         rl.name AS return_location_name
+         FROM bookings b
+         JOIN cars c ON b.car_id = c.id
+         JOIN locations pl ON b.pickup_location_id = pl.id
+         JOIN locations rl ON b.return_location_id = rl.id
+         WHERE b.user_id = ?
+         ORDER BY b.created_at DESC`,
+        [userId]
+      );
+      return rows;
+    } catch (error) {
+      console.error('Error getting bookings by user ID:', error);
       throw error;
     }
   }

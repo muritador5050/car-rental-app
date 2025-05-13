@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Car = require('../models/car');
-const { isAdmin } = require('../utils/middlewares');
+const { isAdmin, authenticateToken } = require('../utils/middlewares');
 
 // Create a new car (admin only)
-router.post('/', isAdmin, async (req, res) => {
+router.post('/', authenticateToken, isAdmin, async (req, res) => {
   try {
     const carId = await Car.create(req.body);
     res.status(201).json({
@@ -118,10 +118,9 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a car (admin only)
-router.put('/:id', isAdmin, async (req, res) => {
+router.put('/:id', authenticateToken, isAdmin, async (req, res) => {
   try {
-    const updated = await Car.update(req.params.id, req.body);
-
+    const updated = await Car.updateCar(req.params.id, req.body);
     if (!updated) {
       return res
         .status(400)
@@ -140,7 +139,7 @@ router.put('/:id', isAdmin, async (req, res) => {
 });
 
 // Delete a car (admin only)
-router.delete('/:id', isAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, isAdmin, async (req, res) => {
   try {
     const deleted = await Car.delete(req.params.id);
 
@@ -165,7 +164,7 @@ router.delete('/:id', isAdmin, async (req, res) => {
   }
 });
 
-router.put('/:id/status', isAdmin, async (req, res) => {
+router.put('/:id/status', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { status } = req.body;
     if (!status) {

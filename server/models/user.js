@@ -122,7 +122,7 @@ class User {
       const [rows] = await pool.query('SELECT role FROM users WHERE id = ?', [
         id,
       ]);
-      return rows[0].role === 'admin';
+      return rows[0] && rows[0].role === 'admin';
     } catch (error) {
       console.error('Error checking if user is admin:', error);
       throw error;

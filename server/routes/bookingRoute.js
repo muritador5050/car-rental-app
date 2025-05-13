@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Booking = require('../models/booking');
-const { authenticateToken } = require('../utils/tokens');
-const { isAdmin } = require('../models/user');
+const { isAdmin, authenticateToken } = require('../utils/middlewares');
 
 //Book a car (only auth user)
 router.post('/', authenticateToken, async (req, res) => {
@@ -70,7 +69,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
       status: req.query.status,
       startDate: req.query.start_date,
       endDate: req.query.end_date,
-      userId: req.query.userId, // Changed from userId to user_id to match query param
+      userId: req.query.user_id, // Changed from userId to user_id to match query param
       carId: req.query.car_id,
       limit: req.query.limit,
       offset: req.query.offset,
