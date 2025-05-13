@@ -145,15 +145,10 @@ class Booking {
         }
       }
 
-      console.log('Query:', query);
-      console.log('Params:', params);
-
       const [rows] = await pool.query(query, params);
       return rows;
     } catch (error) {
       console.error('Error getting all bookings:', error);
-      console.error('Query was:', query);
-      console.error('Params were:', params);
       throw error;
     }
   }
@@ -181,7 +176,7 @@ class Booking {
       throw error;
     }
   }
-  static async getByUserId(userId) {
+  static async getByUserId(id) {
     try {
       const [rows] = await pool.query(
         `SELECT b.*, 
@@ -194,9 +189,9 @@ class Booking {
          JOIN locations rl ON b.return_location_id = rl.id
          WHERE b.user_id = ?
          ORDER BY b.created_at DESC`,
-        [userId]
+        [id]
       );
-      return rows;
+      return rows[0];
     } catch (error) {
       console.error('Error getting bookings by user ID:', error);
       throw error;

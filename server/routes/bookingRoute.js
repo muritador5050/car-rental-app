@@ -69,7 +69,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
       status: req.query.status,
       startDate: req.query.start_date,
       endDate: req.query.end_date,
-      userId: req.query.user_id, // Changed from userId to user_id to match query param
+      userId: req.query.user_id,
       carId: req.query.car_id,
       limit: req.query.limit,
       offset: req.query.offset,
@@ -85,7 +85,9 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
 
 router.get('/my-booking', authenticateToken, async (req, res) => {
   try {
-    const bookings = await Booking.getByUserId(req.userId); // Changed from req.user.id to req.userId
+    const bookings = await Booking.getByUserId(req.id);
+    console.log(bookings);
+
     res.status(200).json(bookings);
   } catch (error) {
     console.error('Error fetching user bookings:', error);
@@ -105,7 +107,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     // You need to check if user has admin status from database
     const userIsAdmin = await isAdmin(req, res, () => {});
 
-    if (booking.user_id !== req.userId && !userIsAdmin) {
+    if (booking.user_id !== req.id && !userIsAdmin) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -125,6 +127,15 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Status is required' });
     }
 
+    //Valid status values
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message:
+          'Invalid status. Must be one of: pending, confirmed, cancelled, completed',
+      });
+    }
+
     //Get the booking to check ownership
     const booking = await Booking.getById(bookingId);
     if (!booking) {
@@ -135,26 +146,37 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
     const userIsAdmin = await isAdmin(req, res, () => {});
 
     //Check permission
-    if (!userIsAdmin) {
-      //Regular user can only cancel their own bookings
-      if (booking.user_id !== req.userId) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
+    // if (!userIsAdmin) {
 
-      if (status !== 'cancelled') {
-        return res.status(403).json({
-          message:
-            'You can only cancel a booking. Contact support for other changes.',
-        });
-      }
+    //   if (booking.user_id !== req.id) {
+    //     return res.status(403).json({ message: 'Access denied' });
+    //   }
+
+    //   if (status !== 'cancelled') {
+    //     return res.status(403).json({
+    //       message:
+    //         'You can only cancel a booking. Contact support for other changes.',
+    //     });
+    //   }
+    // }
+
+    // ✅ Admin: full access to update any booking status
+    if (userIsAdmin) {
+      await Booking.updateStatus(bookingId, status);
+      return res
+        .status(200)
+        .json({ message: `Booking status updated to ${status}` });
     }
 
-    //Valid status values
-    const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
+    // ❌ Non-admin: only allowed to cancel their own booking
+    if (booking.user_id !== req.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (status !== 'cancelled') {
+      return res.status(403).json({
         message:
-          'Invalid status. Must be one of: pending, confirmed, cancelled, completed',
+          'You can only cancel a booking. Contact support for other changes.',
       });
     }
 
