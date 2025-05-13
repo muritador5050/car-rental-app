@@ -67,16 +67,37 @@ class User {
 
   // Update user profile
   static async updateProfile(id, userData) {
-    const { name, phone, address, driver_license_number } = userData;
-
     try {
-      const [result] = await pool.query(
-        'UPDATE users SET name = ?, phone = ?, address = ?, driver_license_number = ? WHERE id = ?',
-        [name, phone, address, driver_license_number, id]
-      );
+      const fields = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(userData)) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+
+      if (fields.length === 0) {
+        throw new Error('No data provided for update');
+      }
+
+      values.push(id); // Append the ID at the end for the WHERE clause
+
+      const query = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
+
+      const [result] = await pool.query(query, values);
       return result.affectedRows > 0;
     } catch (error) {
       console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+
+  static async getAllUsers() {
+    try {
+      const [result] = await pool.query('SELECT * FROM users ');
+      return result;
+    } catch (error) {
+      console.error('Error feching users:', error);
       throw error;
     }
   }
@@ -131,6 +152,18 @@ class User {
       [hashedPassword, user.id]
     );
     return user;
+  }
+
+  //Delete user
+
+  static async deleteById(id) {
+    try {
+      const [row] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
+      return row.affectedRows > 0;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   }
 }
 

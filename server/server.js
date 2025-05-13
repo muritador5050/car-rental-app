@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 //Import routes
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/authRoute');
 const carRoutes = require('./routes/carRoute');
 const bookingRoutes = require('./routes/bookingRoute');
 const reviewRoutes = require('./routes/reviewRoute');
